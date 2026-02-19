@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>English Practice App</title>
+
+    <style>
+      body {
+        font-family: "Segoe UI", sans-serif;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .container {
+        background: #ffffff;
+        width: 100%;
+        max-width: 420px;
+        padding: 25px;
+        border-radius: 18px;
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        text-align: center;
+      }
+      body {
+        overflow-y: auto;
+      }
+      h1 {
+        color: #4f46e5;
+      }
+
+      select {
+        padding: 8px;
+        width: 100%;
+        border-radius: 8px;
+        margin-bottom: 15px;
+      }
+
+      .question {
+        background: #f3f4ff;
+        padding: 12px;
+        border-radius: 10px;
+        margin-bottom: 12px;
+      }
+
+      input {
+        width: 80%;
+        padding: 8px;
+        margin-top: 8px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        text-align: center;
+      }
+
+      button {
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        color: white;
+        font-size: 16px;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        margin-top: 10px;
+      }
+
+      button:hover {
+        transform: scale(1.03);
+      }
+
+      .correct {
+        color: green;
+        font-weight: bold;
+      }
+      .incorrect {
+        color: red;
+        font-weight: bold;
+      }
+
+      #result {
+        margin-top: 15px;
+        font-size: 20px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>📘 English Practice</h1>
+
+      <select id="levelSelect" onchange="loadLevel()">
+        <option value="1">Level 1 - Articles</option>
+        <option value="2">Level 2 - Possessive Pronouns</option>
+        <option value="3">Level 3 - WH Questions</option>
+        <option value="4">Level 4 - Verb To Be</option>
+        <option value="5">Level 5 - Present Simple</option>
+      </select>
+
+      <div id="quiz"></div>
+
+      <button onclick="checkAnswers()">Check Answers</button>
+
+      <h2 id="result"></h2>
+    </div>
+
+    <script>
+      const levels = {
+        1: [
+          { q: "___ apple", a: "an" },
+          { q: "___ car", a: "a" },
+          { q: "___ hour", a: "an" },
+          { q: "___ university", a: "a" },
+          { q: "___ umbrella", a: "an" },
+        ],
+
+        2: [
+          { q: "This is ___ book. (my/mine)", a: "my" },
+          { q: "That house is ___. (her/hers)", a: "hers" },
+          { q: "These are ___. (our/ours)", a: "ours" },
+          { q: "He lost ___ phone. (his/he)", a: "his" },
+          { q: "The bag is ___. (your/yours)", a: "yours" },
+        ],
+
+        3: [
+          { q: "___ is your name?", a: "what" },
+          { q: "___ do you live?", a: "where" },
+          { q: "___ is she?", a: "who" },
+          { q: "___ old are you?", a: "how" },
+          { q: "___ many students?", a: "how" },
+        ],
+
+        4: [
+          { q: "I ___ a student.", a: "am" },
+          { q: "She ___ happy.", a: "is" },
+          { q: "They ___ teachers.", a: "are" },
+          { q: "We ___ ready.", a: "are" },
+          { q: "He ___ my friend.", a: "is" },
+        ],
+
+        5: [
+          { q: "She ___ English. (study)", a: "studies" },
+          { q: "They ___ soccer. (play)", a: "play" },
+          { q: "He ___ TV. (watch)", a: "watches" },
+          { q: "We ___ coffee. (drink)", a: "drink" },
+          { q: "She ___ early. (wake)", a: "wakes" },
+        ],
+      };
+
+      let currentLevel = 1;
+
+      function loadLevel() {
+        currentLevel = document.getElementById("levelSelect").value;
+        const quiz = document.getElementById("quiz");
+        quiz.innerHTML = "";
+
+        levels[currentLevel].forEach((item, i) => {
+          quiz.innerHTML += `
+        <div class="question">
+            ${i + 1}. ${item.q}<br>
+            <input type="text" id="q${i}">
+            <span id="r${i}"></span>
+        </div>
+        `;
+        });
+
+        document.getElementById("result").innerHTML = "";
+      }
+
+      function checkAnswers() {
+        let score = 0;
+
+        levels[currentLevel].forEach((item, i) => {
+          let user = document
+            .getElementById("q" + i)
+            .value.toLowerCase()
+            .trim();
+          let result = document.getElementById("r" + i);
+
+          if (user === item.a) {
+            result.innerHTML = " ✔";
+            result.className = "correct";
+            score++;
+          } else {
+            result.innerHTML = " ✘ (" + item.a + ")";
+            result.className = "incorrect";
+          }
+        });
+
+        document.getElementById("result").innerHTML =
+          "Score: " + score + " / " + levels[currentLevel].length;
+      }
+
+      loadLevel();
+    </script>
+  </body>
+</html>
