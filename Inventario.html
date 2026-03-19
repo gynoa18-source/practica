@@ -1,0 +1,717 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Sistema de Facturación</title>
+
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial;
+        background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      section {
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        width: 95%;
+        max-width: 1000px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      }
+
+      .login-box {
+        background: white;
+        padding: 30px;
+        width: 320px;
+        border-radius: 15px;
+        text-align: center;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      }
+
+      .login-box input {
+        width: 100%;
+        padding: 10px;
+        margin: 8px 0;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+      }
+
+      button {
+        background: #d63384;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+
+      button:hover {
+        background: #b02a6b;
+      }
+
+      .menu-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+
+      th,
+      td {
+        border-bottom: 1px solid #ddd;
+        padding: 8px;
+        text-align: center;
+      }
+
+      th {
+        background: #f8d7e5;
+      }
+
+      input,
+      select {
+        padding: 8px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+      }
+
+      .form {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+      }
+
+      .total {
+        font-size: 20px;
+        font-weight: bold;
+        margin-top: 10px;
+      }
+      /* CONTENEDOR MÁS BONITO */
+      section {
+        background: white;
+        padding: 25px;
+        border-radius: 15px;
+        width: 95%;
+        max-width: 900px;
+        margin: auto;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      }
+
+      /* DASHBOARD MEJORADO */
+      #dashboard {
+        text-align: center;
+      }
+
+      .chart-container {
+        max-width: 500px;
+        margin: 0 auto 20px auto;
+      }
+
+      /* RESPONSIVE */
+      @media (max-width: 600px) {
+        section {
+          width: 95%;
+          padding: 15px;
+        }
+
+        h1,
+        h2 {
+          font-size: 20px;
+        }
+      }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  </head>
+
+  <body>
+    <!-- LOGIN -->
+
+    <div id="login" class="login-box">
+      <h1>Facturación</h1>
+
+      <input id="usuario" placeholder="Usuario" />
+      <input id="password" type="password" placeholder="Contraseña" />
+
+      <button onclick="login()">Entrar</button>
+
+      <p id="error"></p>
+    </div>
+
+    <!-- MENU -->
+
+    <section id="menu" class="hidden">
+      <h1>Menú principal</h1>
+
+      <div class="menu-grid">
+        <button onclick="mostrar('factura')">🧾 Nueva factura</button>
+        <button onclick="mostrar('clientes')">👩 Clientes</button>
+        <button onclick="mostrar('productos')">📦 Productos</button>
+        <button onclick="mostrarHistorial()">📊 Historial</button>
+        <button onclick="mostrarDashboard()">📈 Dashboard</button>
+        <button onclick="logout()">🚪 Salir</button>
+      </div>
+    </section>
+    <!-- CLIENTES -->
+
+    <section id="clientes" class="hidden">
+      <h2>Clientes</h2>
+
+      <div class="form">
+        <input id="clienteNombre" placeholder="Nombre" />
+        <input id="clienteTelefono" placeholder="Teléfono" />
+
+        <button onclick="agregarCliente()">Agregar</button>
+      </div>
+
+      <table id="tablaClientes">
+        <tr>
+          <th>Nombre</th>
+          <th>Teléfono</th>
+          <th>Eliminar</th>
+        </tr>
+      </table>
+
+      <button onclick="volverMenu()">Volver</button>
+    </section>
+
+    <!-- PRODUCTOS -->
+
+    <section id="productos" class="hidden">
+      <h2>Productos</h2>
+
+      <div class="form">
+        <input id="productoNombre" placeholder="Producto" />
+        <input id="productoPrecio" type="number" placeholder="Precio" />
+
+        <button onclick="agregarProducto()">Agregar</button>
+      </div>
+
+      <table id="tablaProductos">
+        <tr>
+          <th>Producto</th>
+          <th>Precio</th>
+          <th>Eliminar</th>
+        </tr>
+      </table>
+
+      <button onclick="volverMenu()">Volver</button>
+    </section>
+
+    <!-- FACTURA -->
+
+    <section id="factura" class="hidden">
+      <h2>Nueva factura</h2>
+
+      <div class="form">
+        <select id="selectCliente"></select>
+
+        <select id="selectProducto"></select>
+
+        <input type="number" id="cantidad" placeholder="Cantidad" />
+
+        <button onclick="agregarProductoFactura()">Agregar</button>
+      </div>
+
+      <table id="tablaFactura">
+        <tr>
+          <th>Producto</th>
+          <th>Cantidad</th>
+          <th>Precio</th>
+          <th>Total</th>
+        </tr>
+      </table>
+
+      <div class="total">Total: $<span id="total">0</span></div>
+
+      <button onclick="guardarFactura()">Guardar factura</button>
+
+      <button onclick="volverMenu()">Volver</button>
+    </section>
+
+    <!-- HISTORIAL -->
+
+    <section id="historial" class="hidden">
+      <h2>Historial de ventas</h2>
+
+      <table id="tablaHistorial">
+        <tr>
+          <th>Cliente</th>
+          <th>Total</th>
+          <th>Fecha</th>
+        </tr>
+      </table>
+
+      <button onclick="volverMenu()">Volver</button>
+    </section>
+    <section id="dashboard" class="hidden">
+      <h2>Dashboard de ventas</h2>
+
+      <div class="chart-container">
+        <canvas id="graficoVentas"></canvas>
+      </div>
+
+      <p><b>Total vendido:</b> $<span id="totalVentas">0</span></p>
+      <p><b>Total facturas:</b> <span id="totalFacturas">0</span></p>
+      <p><b>Producto más vendido:</b> <span id="topProducto">-</span></p>
+
+      <table id="tablaDashboard">
+        <tr>
+          <th>Producto</th>
+          <th>Cantidad vendida</th>
+        </tr>
+      </table>
+
+      <button onclick="volverMenu()">Volver</button>
+    </section>
+    <!-- tu contenido -->
+
+    <script>
+      /* LOGIN */
+
+      function login() {
+        const u = document.getElementById("usuario").value;
+        const p = document.getElementById("password").value;
+
+        if (u == "admin" && p == "1234") {
+          document.getElementById("login").style.display = "none";
+          mostrar("menu");
+        } else {
+          document.getElementById("error").innerText = "Datos incorrectos";
+        }
+      }
+
+      /* NAVEGACION */
+
+      function ocultarTodo() {
+        document.querySelectorAll("section").forEach((s) => {
+          s.classList.add("hidden");
+        });
+      }
+
+      function mostrar(id) {
+        ocultarTodo();
+
+        document.getElementById(id).classList.remove("hidden");
+
+        if (id === "factura") {
+          cargarSelects();
+        }
+      }
+
+      function volverMenu() {
+        mostrar("menu");
+      }
+
+      function logout() {
+        location.reload();
+        function mostrarDashboard() {
+          mostrar("dashboard");
+          let grafico = null;
+
+          function crearGrafico(conteoProductos) {
+            let labels = [];
+            let data = [];
+
+            for (let p in conteoProductos) {
+              labels.push(p);
+              data.push(conteoProductos[p]);
+            }
+
+            // destruir gráfico anterior si existe
+            if (grafico) {
+              grafico.destroy();
+            }
+
+            let ctx = document.getElementById("graficoVentas").getContext("2d");
+
+            grafico = new Chart(ctx, {
+              type: "pie",
+              data: {
+                labels: labels,
+                datasets: [
+                  {
+                    data: data,
+                  },
+                ],
+              },
+            });
+          }
+
+          let totalVentas = 0;
+          let conteoProductos = {};
+          let totalFacturas = historial.length;
+
+          historial.forEach((fact) => {
+            totalVentas += fact.total;
+
+            fact.productos.forEach((p) => {
+              if (!conteoProductos[p.producto]) {
+                conteoProductos[p.producto] = 0;
+              }
+
+              conteoProductos[p.producto] += p.cant;
+              crearGrafico(conteoProductos);
+            });
+          });
+
+          // Producto más vendido
+          let topProducto = "-";
+          let max = 0;
+
+          for (let p in conteoProductos) {
+            if (conteoProductos[p] > max) {
+              max = conteoProductos[p];
+              topProducto = p;
+            }
+          }
+
+          // Mostrar datos
+          document.getElementById("totalVentas").innerText = totalVentas;
+          document.getElementById("totalFacturas").innerText = totalFacturas;
+          document.getElementById("topProducto").innerText = topProducto;
+
+          // Tabla
+          let tabla = document.getElementById("tablaDashboard");
+
+          tabla.innerHTML = `
+<tr>
+<th>Producto</th>
+<th>Cantidad vendida</th>
+</tr>
+`;
+
+          for (let p in conteoProductos) {
+            tabla.innerHTML += `
+<tr>
+<td>${p}</td>
+<td>${conteoProductos[p]}</td>
+</tr>
+`;
+          }
+        }
+      }
+
+      /* CLIENTES */
+
+      let clientes = JSON.parse(localStorage.getItem("clientes")) || [];
+
+      function agregarCliente() {
+        let nombre = document.getElementById("clienteNombre").value;
+        let tel = document.getElementById("clienteTelefono").value;
+
+        if (nombre == "") {
+          alert("Ingrese nombre");
+          return;
+        }
+
+        clientes.push({ nombre, tel });
+
+        localStorage.setItem("clientes", JSON.stringify(clientes));
+
+        renderClientes();
+      }
+
+      function renderClientes() {
+        let tabla = document.getElementById("tablaClientes");
+
+        tabla.innerHTML =
+          "<tr><th>Nombre</th><th>Teléfono</th><th>Eliminar</th></tr>";
+
+        clientes.forEach((c, i) => {
+          tabla.innerHTML += `
+<tr>
+<td>${c.nombre}</td>
+<td>${c.tel}</td>
+<td><button onclick="eliminarCliente(${i})">X</button></td>
+</tr>
+`;
+        });
+      }
+
+      function eliminarCliente(i) {
+        clientes.splice(i, 1);
+
+        localStorage.setItem("clientes", JSON.stringify(clientes));
+
+        renderClientes();
+      }
+
+      renderClientes();
+
+      /* PRODUCTOS (adaptado al Excel) */
+
+      let productos = JSON.parse(localStorage.getItem("productos")) || [
+        { nombre: "Papel fotográfico glossy", precio: 15 },
+        { nombre: "Papel fotográfico adhesivo", precio: 15 },
+        { nombre: "Cartulina hilo blanca", precio: 4 },
+        { nombre: "Papel adhesivo matte", precio: 10 },
+        { nombre: "Cartonite", precio: 20 },
+        { nombre: "Impresión DTF", precio: 50 },
+      ];
+
+      function agregarProducto() {
+        let nombre = document.getElementById("productoNombre").value;
+        let precio = document.getElementById("productoPrecio").value;
+
+        if (nombre == "" || precio == "") {
+          alert("Complete los campos");
+          return;
+        }
+
+        productos.push({ nombre, precio: Number(precio) });
+
+        localStorage.setItem("productos", JSON.stringify(productos));
+
+        renderProductos();
+      }
+
+      function renderProductos() {
+        let tabla = document.getElementById("tablaProductos");
+
+        tabla.innerHTML =
+          "<tr><th>Producto</th><th>Precio</th><th>Eliminar</th></tr>";
+
+        productos.forEach((p, i) => {
+          tabla.innerHTML += `
+<tr>
+<td>${p.nombre}</td>
+<td>$${p.precio}</td>
+<td><button onclick="eliminarProducto(${i})">X</button></td>
+</tr>
+`;
+        });
+      }
+
+      function eliminarProducto(i) {
+        productos.splice(i, 1);
+
+        localStorage.setItem("productos", JSON.stringify(productos));
+
+        renderProductos();
+      }
+
+      renderProductos();
+
+      /* FACTURACION */
+
+      let factura = [];
+      let total = 0;
+
+      function cargarSelects() {
+        let sc = document.getElementById("selectCliente");
+        let sp = document.getElementById("selectProducto");
+
+        sc.innerHTML = "<option>Seleccione cliente</option>";
+        sp.innerHTML = "<option value=''>Seleccione producto</option>";
+
+        clientes.forEach((c) => {
+          sc.innerHTML += `<option>${c.nombre}</option>`;
+        });
+
+        productos.forEach((p, i) => {
+          sp.innerHTML += `<option value="${i}">${p.nombre}</option>`;
+        });
+      }
+
+      function agregarProductoFactura() {
+        let id = document.getElementById("selectProducto").value;
+        let cant = document.getElementById("cantidad").value;
+
+        if (id == "" || cant == "") {
+          alert("Seleccione producto y cantidad");
+          return;
+        }
+
+        let p = productos[id];
+
+        let subtotal = Number(p.precio) * Number(cant);
+
+        total += subtotal;
+
+        factura.push({
+          producto: p.nombre,
+          cant: Number(cant),
+          precio: Number(p.precio),
+          subtotal,
+        });
+
+        renderFactura();
+
+        document.getElementById("cantidad").value = "";
+      }
+
+      function renderFactura() {
+        let tabla = document.getElementById("tablaFactura");
+
+        tabla.innerHTML =
+          "<tr><th>Producto</th><th>Cantidad</th><th>Precio</th><th>Total</th></tr>";
+
+        factura.forEach((f) => {
+          tabla.innerHTML += `
+<tr>
+<td>${f.producto}</td>
+<td>${f.cant}</td>
+<td>$${f.precio}</td>
+<td>$${f.subtotal}</td>
+</tr>
+`;
+        });
+
+        document.getElementById("total").innerText = total;
+      }
+
+      /* GUARDAR FACTURA */
+
+      let historial = JSON.parse(localStorage.getItem("historial")) || [];
+
+      function guardarFactura() {
+        if (factura.length == 0) {
+          alert("Factura vacía");
+          return;
+        }
+
+        let cliente = document.getElementById("selectCliente").value;
+
+        historial.push({
+          cliente,
+          productos: factura,
+          total,
+          fecha: new Date().toLocaleDateString(),
+        });
+
+        localStorage.setItem("historial", JSON.stringify(historial));
+
+        alert("Factura guardada");
+
+        factura = [];
+        total = 0;
+
+        renderFactura();
+      }
+
+      /* HISTORIAL */
+
+      function mostrarHistorial() {
+        mostrar("historial");
+
+        let tabla = document.getElementById("tablaHistorial");
+
+        tabla.innerHTML =
+          "<tr><th>Cliente</th><th>Total</th><th>Fecha</th></tr>";
+
+        historial.forEach((h) => {
+          tabla.innerHTML += `
+<tr>
+<td>${h.cliente}</td>
+<td>${h.total}</td>
+<td>${h.fecha}</td>
+</tr>
+`;
+        });
+      }
+      let grafico = null;
+
+      function mostrarDashboard() {
+        mostrar("dashboard");
+
+        let totalVentas = 0;
+        let conteoProductos = {};
+        let totalFacturas = historial.length;
+
+        historial.forEach((fact) => {
+          totalVentas += fact.total;
+
+          fact.productos.forEach((p) => {
+            if (!conteoProductos[p.producto]) {
+              conteoProductos[p.producto] = 0;
+            }
+            conteoProductos[p.producto] += p.cant;
+          });
+        });
+
+        // Producto más vendido
+        let topProducto = "-";
+        let max = 0;
+
+        for (let p in conteoProductos) {
+          if (conteoProductos[p] > max) {
+            max = conteoProductos[p];
+            topProducto = p;
+          }
+        }
+
+        // Mostrar datos
+        document.getElementById("totalVentas").innerText = totalVentas;
+        document.getElementById("totalFacturas").innerText = totalFacturas;
+        document.getElementById("topProducto").innerText = topProducto;
+
+        // Tabla
+        let tabla = document.getElementById("tablaDashboard");
+
+        tabla.innerHTML = `
+  <tr>
+  <th>Producto</th>
+  <th>Cantidad vendida</th>
+  </tr>
+  `;
+
+        let labels = [];
+        let data = [];
+
+        for (let p in conteoProductos) {
+          tabla.innerHTML += `
+    <tr>
+    <td>${p}</td>
+    <td>${conteoProductos[p]}</td>
+    </tr>
+    `;
+
+          labels.push(p);
+          data.push(conteoProductos[p]);
+        }
+
+        // 🔥 GRAFICO
+        let ctx = document.getElementById("graficoVentas");
+
+        if (grafico) {
+          grafico.destroy();
+        }
+
+        grafico = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: "Cantidad vendida",
+                data: data,
+                backgroundColor: ["#74b9ff", "#55efc4", "#ffeaa7", "#fab1a0"],
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+          },
+        });
+      }
+    </script>
+  </body>
+</html>
