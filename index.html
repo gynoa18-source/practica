@@ -175,7 +175,7 @@
         <button onclick="mostrar('productos')">📦 Productos</button>
         <button onclick="mostrarHistorial()">📊 Historial</button>
         <button onclick="mostrarDashboard()">📈 Dashboard</button>
-        <button onclick="logout()">🚪 Salir</button>
+        <button onclick="logout()">🚪Cerrar sesión</button>
       </div>
     </section>
     <!-- CLIENTES -->
@@ -361,10 +361,23 @@
         mostrar("menu");
       }
 
-      function logout() {
+   function logout() {
+  // ocultar todas las secciones
+  ocultarTodo();
+
+  // ocultar menú también
+  document.getElementById("menu").classList.add("hidden");
+
+  // mostrar login
+  document.getElementById("login").style.display = "block";
+
+  // limpiar campos (opcional pero recomendado)
+  document.getElementById("usuario").value = "";
+  document.getElementById("password").value = "";
+}
         function mostrarDashboard() {
           mostrar("dashboard");
-          let grafico = null;
+          let grafico = null
 
           function crearGrafico(conteoProductos) {
             let labels = [];
@@ -447,7 +460,6 @@ let totalGastos = gastos.reduce((acc, g) => acc + g.monto, 0);
 `;
           }
         }
-      }
 
       /* CLIENTES */
 
