@@ -235,18 +235,20 @@
         <select id="selectProducto"></select>
 
         <input type="number" id="cantidad" placeholder="Cantidad" />
+        <input type="date" id="fechaFactura" />
 
         <button onclick="agregarProductoFactura()">Agregar</button>
       </div>
 
       <table id="tablaFactura">
         <tr>
-          <th>Producto</th>
-          <th>Cantidad</th>
-          <th>Precio</th>
-          <th>Fecha</th>
-          <th>Total</th>
-        </tr>
+  <th>Producto</th>
+  <th>Cantidad</th>
+  <th>Precio</th>
+  <th>Fecha</th>
+  <th>Total</th>
+  <th>Eliminar</th>
+</tr>
       </table>
 
       <div class="total">Total: $<span id="total">0</span></div>
@@ -595,7 +597,11 @@
         let subtotal = Number(p.precio) * Number(cant);
         total += subtotal;
 
-        let fecha = new Date().toLocaleDateString(); // 🔥 AQUÍ
+        let fechaInput = document.getElementById("fechaFactura").value;
+
+let fecha = fechaInput
+  ? fechaInput
+  : new Date().toLocaleDateString(); // 🔥 AQUÍ
 
         factura.push({
           producto: p.nombre,
@@ -610,26 +616,41 @@
       }
 
       function renderFactura() {
-        let tabla = document.getElementById("tablaFactura");
+  let tabla = document.getElementById("tablaFactura");
 
-        tabla.innerHTML = tabla.innerHTML =
-          "<tr><th>Producto</th><th>Cantidad</th><th>Precio</th><th>Fecha</th><th>Total</th></tr>";
+  tabla.innerHTML = `
+<tr>
+<th>Producto</th>
+<th>Cantidad</th>
+<th>Precio</th>
+<th>Fecha</th>
+<th>Total</th>
+<th>Eliminar</th>
+</tr>
+`;
 
-        factura.forEach((f) => {
-          tabla.innerHTML += `
+  factura.forEach((f, i) => {
+    tabla.innerHTML += `
 <tr>
 <td>${f.producto}</td>
 <td>${f.cant}</td>
 <td>$${f.precio}</td>
 <td>${f.fecha}</td>
 <td>$${f.subtotal}</td>
+<td><button onclick="eliminarProductoFactura(${i})">X</button></td>
 </tr>
 `;
-        });
+  });
 
-        document.getElementById("total").innerText = total;
-      }
+  document.getElementById("total").innerText = total;
+}
+function eliminarProductoFactura(i) {
+  total -= factura[i].subtotal;
 
+  factura.splice(i, 1);
+
+  renderFactura();
+}
       /* GUARDAR FACTURA */
 
       let historial = JSON.parse(localStorage.getItem("historial")) || [];
@@ -852,3 +873,4 @@
     </script>
   </body>
 </html>
+
