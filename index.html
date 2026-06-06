@@ -145,6 +145,13 @@
       #dashboardGastos {
         color: #dc0000;
       }
+      #tablaGastos td:last-child{
+    white-space: nowrap;
+}
+
+#tablaGastos button{
+    margin: 2px;
+}
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   </head>
@@ -235,7 +242,7 @@
         <select id="selectProducto"></select>
 
         <input type="number" id="cantidad" placeholder="Cantidad" />
-        <input type="date" id="fechaFactura" />
+        <input type="date" id="fechaFactura">
 
         <button onclick="agregarProductoFactura()">Agregar</button>
       </div>
@@ -268,6 +275,7 @@
           <th>Cliente</th>
           <th>Total</th>
           <th>Fecha</th>
+          <th>Editar</th>
         </tr>
       </table>
 
@@ -275,6 +283,13 @@
     </section>
     <section id="dashboard" class="hidden">
       <h2>Dashboard de ventas</h2>
+      <div style="margin-bottom:15px;">
+  <input type="month" id="filtroMes">
+  <button onclick="mostrarDashboard()">Filtrar</button>
+  <button onclick="limpiarFiltro()">
+    Mostrar Todo
+</button>
+</div>
 
       <div class="chart-container">
         <canvas id="graficoVentas"></canvas>
@@ -302,6 +317,7 @@
       <div class="form">
         <input id="gastoDescripcion" placeholder="Descripción" />
         <input id="gastoMonto" type="number" placeholder="Monto" />
+        <input type="date" id="gastoFecha">
 
         <button onclick="agregarGasto()">Agregar</button>
       </div>
@@ -374,10 +390,7 @@
         // limpiar campos (opcional pero recomendado)
         document.getElementById("usuario").value = "";
         document.getElementById("password").value = "";
-      }
-      function mostrarDashboard() {
-        mostrar("dashboard");
-        let grafico = null;
+      
 
         function crearGrafico(conteoProductos) {
           let labels = [];
@@ -564,8 +577,11 @@
 
       /* FACTURACION */
 
-      let factura = [];
-      let total = 0;
+     let factura = [];
+let total = 0;
+let grafico = null;
+
+let gastos = JSON.parse(localStorage.getItem("gastos")) || [];
 
       function cargarSelects() {
         let sc = document.getElementById("selectCliente");
@@ -656,107 +672,191 @@ function eliminarProductoFactura(i) {
       let historial = JSON.parse(localStorage.getItem("historial")) || [];
 
       function guardarFactura() {
-        if (factura.length == 0) {
-          alert("Factura vacía");
-          return;
-        }
 
-        let cliente = document.getElementById("selectCliente").value;
+    if (factura.length == 0) {
+        alert("Factura vacía");
+        return;
+    }
 
-        historial.push({
-          cliente,
-          productos: factura,
-          total,
-          fecha: new Date().toLocaleDateString(),
-        });
+    let cliente =
+        document.getElementById("selectCliente").value;
 
-        localStorage.setItem("historial", JSON.stringify(historial));
+    let fechaFactura =
+        document.getElementById("fechaFactura").value;
 
-        alert("Factura guardada");
+    if (fechaFactura == "") {
+        alert("Seleccione una fecha");
+        return;
+    }
+console.log(fechaFactura);
+    historial.push({
+        cliente: cliente,
+        productos: [...factura],
+        total: total,
+        fecha: fechaFactura
+    });
 
-        factura = [];
-        total = 0;
+    localStorage.setItem(
+        "historial",
+        JSON.stringify(historial)
+    );
 
-        renderFactura();
-      }
+    alert("Factura guardada");
 
+    factura = [];
+    total = 0;
+
+    renderFactura();
+}
       /* HISTORIAL */
 
-      function mostrarHistorial() {
-        mostrar("historial");
+     function mostrarHistorial() {
+  mostrar("historial");
 
-        let tabla = document.getElementById("tablaHistorial");
+  let tabla = document.getElementById("tablaHistorial");
 
-        tabla.innerHTML =
-          "<tr><th>Cliente</th><th>Total</th><th>Fecha</th></tr>";
+  tabla.innerHTML = `
+  <tr>
+    <th>Cliente</th>
+    <th>Total</th>
+    <th>Fecha</th>
+    <th>Editar</th>
+  </tr>
+  `;
 
-        historial.forEach((h) => {
-          tabla.innerHTML += `
-<tr>
-<td>${h.cliente}</td>
-<td>${h.total}</td>
-<td>${h.fecha}</td>
-</tr>
-`;
-        });
-      }
-      let grafico = null;
-      /* GASTOS */
+  historial.forEach((h, i) => {
+    tabla.innerHTML += `
+    <tr>
+      <td>${h.cliente}</td>
+      <td>$${h.total}</td>
+      <td>${h.fecha}</td>
+      <td>
+        <button onclick="editarFactura(${i})">✏️</button>
+      </td>
+    </tr>
+    `;
+  });
+}
+function editarFactura(i) {
 
-      let gastos = JSON.parse(localStorage.getItem("gastos")) || [];
+  let facturaEditada = historial[i];
 
-      function agregarGasto() {
-        let desc = document.getElementById("gastoDescripcion").value;
-        let monto = document.getElementById("gastoMonto").value;
+  factura = [...facturaEditada.productos];
 
-        if (desc == "" || monto == "") {
-          alert("Complete los campos");
-          return;
-        }
+  total = facturaEditada.total;
+
+  mostrar("factura");
+
+  document.getElementById("selectCliente").value =
+      facturaEditada.cliente;
+
+  renderFactura();
+
+  historial.splice(i, 1);
+
+  localStorage.setItem(
+      "historial",
+      JSON.stringify(historial)
+  );
+}
+     let indiceEdicionGasto = -1;
+
+function agregarGasto() {
+
+    let desc = document.getElementById("gastoDescripcion").value;
+    let monto = document.getElementById("gastoMonto").value;
+    let fecha = document.getElementById("gastoFecha").value;
+
+    if (desc == "" || monto == "" || fecha == "") {
+        alert("Complete todos los campos");
+        return;
+    }
+
+    if (indiceEdicionGasto >= 0) {
+
+        gastos[indiceEdicionGasto] = {
+            descripcion: desc,
+            monto: Number(monto),
+            fecha: fecha
+        };
+
+        indiceEdicionGasto = -1;
+
+    } else {
 
         gastos.push({
-          descripcion: desc,
-          monto: Number(monto),
-          fecha: new Date().toLocaleDateString(),
+            descripcion: desc,
+            monto: Number(monto),
+            fecha: fecha
         });
 
-        localStorage.setItem("gastos", JSON.stringify(gastos));
+    }
 
-        renderGastos();
+    localStorage.setItem(
+        "gastos",
+        JSON.stringify(gastos)
+    );
 
-        document.getElementById("gastoDescripcion").value = "";
-        document.getElementById("gastoMonto").value = "";
-      }
+    renderGastos();
 
-      function renderGastos() {
-        let tabla = document.getElementById("tablaGastos");
+    document.getElementById("gastoDescripcion").value = "";
+    document.getElementById("gastoMonto").value = "";
+    document.getElementById("gastoFecha").value = "";
+}
+function editarGasto(i) {
 
-        tabla.innerHTML = `
-<tr>
-<th>Descripción</th>
-<th>Monto</th>
-<th>Fecha</th>
-<th>Eliminar</th>
-</tr>
-`;
+    document.getElementById("gastoDescripcion").value =
+        gastos[i].descripcion;
 
-        let total = 0;
+    document.getElementById("gastoMonto").value =
+        gastos[i].monto;
 
-        gastos.forEach((g, i) => {
-          total += g.monto;
+    document.getElementById("gastoFecha").value =
+        gastos[i].fecha;
 
-          tabla.innerHTML += `
-<tr>
-<td>${g.descripcion}</td>
-<td>$${g.monto}</td>
-<td>${g.fecha}</td>
-<td><button onclick="eliminarGasto(${i})">X</button></td>
-</tr>
-`;
-        });
+    indiceEdicionGasto = i;
+}
 
-        document.getElementById("totalGastos").innerText = total;
-      }
+     function renderGastos() {
+
+    let tabla = document.getElementById("tablaGastos");
+
+    tabla.innerHTML = `
+    <tr>
+        <th>Descripción</th>
+        <th>Monto</th>
+        <th>Fecha</th>
+        <th>Acciones</th>
+    </tr>
+    `;
+
+    let total = 0;
+
+    gastos.forEach((g, i) => {
+
+        total += Number(g.monto);
+
+        tabla.innerHTML += `
+        <tr>
+            <td>${g.descripcion}</td>
+            <td>$${Number(g.monto).toLocaleString("en-US")}</td>
+            <td>${new Date(g.fecha).toLocaleDateString("es-DO")}</td>
+            <td>
+                <button onclick="editarGasto(${i})">
+                    Editar
+                </button>
+
+                <button onclick="eliminarGasto(${i})">
+                    Eliminar
+                </button>
+            </td>
+        </tr>
+        `;
+    });
+
+    document.getElementById("totalGastos").innerText =
+    Number(total).toLocaleString("en-US");
+}
 
       function eliminarGasto(i) {
         gastos.splice(i, 1);
@@ -766,108 +866,168 @@ function eliminarProductoFactura(i) {
         renderGastos();
       }
 
-      function mostrarDashboard() {
-        mostrar("dashboard");
+  function mostrarDashboard() {
 
-        let totalVentas = 0;
+    mostrar("dashboard");
 
-        let gastosActualizados =
-          JSON.parse(localStorage.getItem("gastos")) || [];
+    let mesSeleccionado =
+        document.getElementById("filtroMes").value;
 
-        let totalGastos = gastosActualizados.reduce(
-          (acc, g) => acc + g.monto,
-          0,
-        );
-        let conteoProductos = {};
-        let totalFacturas = historial.length;
+    let historialFiltrado = historial;
 
-        historial.forEach((fact) => {
-          totalVentas += fact.total;
+    if (mesSeleccionado) {
 
-          fact.productos.forEach((p) => {
-            if (!conteoProductos[p.producto]) {
-              conteoProductos[p.producto] = 0;
-            }
-            conteoProductos[p.producto] += p.cant;
-          });
+        historialFiltrado = historial.filter(f => {
+
+            let fecha = new Date(f.fecha);
+
+            let anioMes =
+                fecha.getFullYear() + "-" +
+                String(fecha.getMonth() + 1).padStart(2, "0");
+
+            return anioMes === mesSeleccionado;
+console.log("Mes seleccionado:", mesSeleccionado);
+console.log("Facturas filtradas:", historialFiltrado);
+historial.forEach(f => {
+    console.log("Fecha factura:", f.fecha);
+});
         });
 
-        // Producto más vendido
-        let topProducto = "-";
-        let max = 0;
+    }
 
-        for (let p in conteoProductos) {
-          if (conteoProductos[p] > max) {
+    let totalVentas = 0;
+    let totalFacturas = historialFiltrado.length;
+
+    let conteoProductos = {};
+
+    historialFiltrado.forEach(f => {
+
+        totalVentas += Number(f.total);
+
+        if (f.productos) {
+
+            f.productos.forEach(p => {
+
+                if (!conteoProductos[p.producto]) {
+                    conteoProductos[p.producto] = 0;
+                }
+
+                conteoProductos[p.producto] +=
+                    Number(p.cantidad || 1);
+
+            });
+
+        }
+
+    });
+
+    let totalGastos = gastos.reduce(
+        (a, g) => a + Number(g.monto || 0),
+        0
+    );
+
+    let topProducto = "-";
+    let max = 0;
+
+    for (let p in conteoProductos) {
+
+        if (conteoProductos[p] > max) {
+
             max = conteoProductos[p];
             topProducto = p;
-          }
+
         }
 
-        // Mostrar datos
-        document.getElementById("totalVentas").innerText = totalVentas;
-        document.getElementById("dashboardGastos").innerText = totalGastos;
+    }
 
-        let ganancia = totalVentas - totalGastos;
-        document.getElementById("gananciaNeta").innerText = ganancia;
+   document.getElementById("totalVentas").innerText =
+    Number(totalVentas).toLocaleString("en-US", {
+        minimumFractionDigits: 2
+    });
 
-        // color automático
-        if (ganancia < 0) {
-          document.getElementById("gananciaNeta").style.color = "red";
-        } else {
-          document.getElementById("gananciaNeta").style.color = "green";
-        }
-        document.getElementById("totalFacturas").innerText = totalFacturas;
-        document.getElementById("topProducto").innerText = topProducto;
+   document.getElementById("dashboardGastos").innerText =
+    Number(totalGastos).toLocaleString("en-US", {
+        minimumFractionDigits: 2
+    });
 
-        // Tabla
-        let tabla = document.getElementById("tablaDashboard");
+    let ganancia = totalVentas - totalGastos;
 
-        tabla.innerHTML = `
-  <tr>
-  <th>Producto</th>
-  <th>Cantidad vendida</th>
-  </tr>
-  `;
+    document.getElementById("gananciaNeta").innerText =
+    Number(ganancia).toLocaleString("en-US", {
+        minimumFractionDigits: 2
+    });
 
-        let labels = [];
-        let data = [];
+    document.getElementById("gananciaNeta").style.color =
+        ganancia < 0 ? "red" : "green";
 
-        for (let p in conteoProductos) {
-          tabla.innerHTML += `
-    <tr>
-    <td>${p}</td>
-    <td>${conteoProductos[p]}</td>
-    </tr>
+    document.getElementById("totalFacturas").innerText =
+        totalFacturas;
+
+    document.getElementById("topProducto").innerText =
+        topProducto;
+
+    let tabla =
+        document.getElementById("tablaDashboard");
+
+    tabla.innerHTML = `
+        <tr>
+            <th>Producto</th>
+            <th>Cantidad vendida</th>
+        </tr>
     `;
 
-          labels.push(p);
-          data.push(conteoProductos[p]);
-        }
+    let labels = [];
+    let data = [];
 
-        // 🔥 GRAFICO
-        let ctx = document.getElementById("graficoVentas");
+    for (let p in conteoProductos) {
 
-        if (grafico) {
-          grafico.destroy();
-        }
+        tabla.innerHTML += `
+            <tr>
+                <td>${p}</td>
+                <td>${conteoProductos[p]}</td>
+            </tr>
+        `;
 
-        grafico = new Chart(ctx, {
-          type: "bar",
-          data: {
+        labels.push(p);
+        data.push(conteoProductos[p]);
+
+    }
+
+    let ctx =
+        document.getElementById("graficoVentas");
+
+    if (grafico) {
+        grafico.destroy();
+    }
+
+    grafico = new Chart(ctx, {
+        type: "bar",
+        data: {
             labels: labels,
-            datasets: [
-              {
+            datasets: [{
                 label: "Cantidad vendida",
                 data: data,
-                backgroundColor: ["#74b9ff", "#55efc4", "#ffeaa7", "#fab1a0"],
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-          },
-        });
-      }
+                backgroundColor: [
+                    "#74b9ff",
+                    "#55efc4",
+                    "#ffeaa7",
+                    "#fab1a0"
+                ]
+            }]
+        },
+        options: {
+            responsive: true
+        }
+    });
+
+}
+function limpiarFiltro() {
+
+    document.getElementById("filtroMes").value = "";
+
+    mostrarDashboard();
+
+}
       renderGastos();
       ocultarTodo();
     </script>
